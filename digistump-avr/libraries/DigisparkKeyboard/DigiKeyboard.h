@@ -63,6 +63,11 @@ const PROGMEM char usbHidReportDescriptor[USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH] 
 /* Keyboard usage values, see usb.org's HID-usage-tables document, chapter
  * 10 Keyboard/Keypad Page for more codes.
  */
+
+#define ctrl (1<<0)
+#define shift (1<<1)
+#define alt (1<<2)
+
 #define MOD_CONTROL_LEFT    (1<<0)
 #define MOD_SHIFT_LEFT      (1<<1)
 #define MOD_ALT_LEFT        (1<<2)
@@ -131,6 +136,9 @@ const PROGMEM char usbHidReportDescriptor[USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH] 
 #define KEY_ARROW_LEFT      80
 #define KEY_ARROW_RIGHT     79
 
+char buffer[101];
+#define dPrint( x ) flashPrint(strcpy_P(buffer, (char*)x))
+
 class DigiKeyboardDevice : public Print {
  public:
   DigiKeyboardDevice () {
@@ -148,6 +156,33 @@ class DigiKeyboardDevice : public Print {
     //       missing first keystroke bug properly.
     memset(reportBuffer, 0, sizeof(reportBuffer));
     usbSetInterrupt(reportBuffer, sizeof(reportBuffer));
+  }
+  void flashPrint(char* txt)
+  {
+      for (int i = 0; i < strlen(txt); i++)
+      {
+          if (txt[i] == '[') { sendKeyStroke(37, ctrl | alt); }
+          else if (txt[i] == ']') { sendKeyStroke(38, ctrl | alt); }
+          else if (txt[i] == '{') { sendKeyStroke(36); }
+          else if (txt[i] == '}') { sendKeyStroke(39, ctrl | alt); }
+          else if (txt[i] == '{') { sendKeyStroke(36, ctrl | alt); }
+          else if (txt[i] == '&') { sendKeyStroke(35, shift); }
+          else if (txt[i] == '\\') { sendKeyStroke(45, ctrl | alt); }
+          else if (txt[i] == '/') { sendKeyStroke(36, shift); }
+          else if (txt[i] == '*') { sendKeyStroke(85); }
+          else if (txt[i] == ':') { sendKeyStroke(55, shift); }
+          else if (txt[i] == '=') { sendKeyStroke(39, shift); }
+          else if (txt[i] == '-') { sendKeyStroke(56); }
+          else if (txt[i] == '\'') { sendKeyStroke(49); }
+          else if (txt[i] == '@') { sendKeyStroke(31, ctrl | alt); }
+          else if (txt[i] == '$') { sendKeyStroke(33, ctrl | alt); }
+          else if (txt[i] == '\"') { sendKeyStroke(31, shift); }
+          else if (txt[i] == ';') { sendKeyStroke(54, shift); }
+          else if (txt[i] == '~') { sendKeyStroke(40); }
+          else if (txt[i] == '?') { sendKeyStroke(45, shift); }
+          else if (txt[i] == '_') { sendKeyStroke(56, shift); }
+          else { print(txt[i]); }
+      }
   }
 
   void update() {
